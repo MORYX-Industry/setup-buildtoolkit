@@ -1,0 +1,14 @@
+# License?
+
+name: 'Setup BuildToolkit'
+description: 'Setup MORX BuildToolkit'
+author: 'MORYX Industry'
+
+runs:
+  using: "composite"
+  steps: 
+    - name: "🔧 Setup BuildToolkit"
+      run: |
+        Copy-Item -Path ${{ github.action_path }}\.build -Destination ${{ github.workspace }} -Force -Recurse
+        Copy-Item ${{ github.action_path }}\*.ps1 -Destination ${{ github.workspace }} -Force
+      shell: pwsh
