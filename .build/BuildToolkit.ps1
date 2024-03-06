@@ -323,6 +323,7 @@ function Invoke-PackSdkProject($CsprojItem, [bool]$IncludeSymbols = $False) {
     $packargs += "-p:PackageVersion=$env:MORYX_PACKAGE_VERSION";
     $packargs += "--verbosity", "$env:MORYX_NUGET_VERBOSITY";
     $packargs += "--no-build";
+    $packargs += "--no-restore";
 
     if ($IncludeSymbols) {
         $packargs += "--include-symbols";
