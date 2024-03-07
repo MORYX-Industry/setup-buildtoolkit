@@ -292,9 +292,6 @@ function Invoke-PackSdkProject($CsprojItem, [bool]$IncludeSymbols = $False) {
     $projectObjArtifacts = [System.IO.Path]::Combine($artifacts, $projectName, "obj");
     CopyAndReplaceFolder $projectObjArtifacts $objPath;   
 
-    # Restore nuget packages to project
-    $csprojFullName = $CsprojItem.FullName;
-    dotnet restore "$csprojFullName" --configfile NuGet.Config --verbosity $env:MORYX_NUGET_VERBOSITY
 
     if (IsLicensedProject $CsprojItem) {
         # Replace assemblies with licensed assemblies
@@ -323,13 +320,13 @@ function Invoke-PackSdkProject($CsprojItem, [bool]$IncludeSymbols = $False) {
     $packargs += "-p:PackageVersion=$env:MORYX_PACKAGE_VERSION";
     $packargs += "--verbosity", "$env:MORYX_NUGET_VERBOSITY";
     $packargs += "--no-build";
-    $packargs += "--no-restore";
 
     if ($IncludeSymbols) {
         $packargs += "--include-symbols";
         $packargs += "--include-source";
     }
 
+    $csprojFullName = $CsprojItem.FullName;
     $output =  dotnet pack "$csprojFullName" @packargs 
     
     # Check dotent pack output
@@ -428,7 +425,7 @@ function Invoke-Publish([string]$NugetApiKey, [string]$PackageTarget, [string]$S
 
     foreach ($package in $packages) {
         Write-Host "Pushing package $package"
-        dotnet nuget push $package --api-key $NugetApiKey --no-symbols --skip-duplicate --source $PackageTarget
+        nuget push $package -ApiKey $NugetApiKey -NoSymbols -SkipDuplicate -Source $PackageTarget
         Invoke-ExitCodeCheck $LastExitCode;
     }
 
@@ -440,7 +437,7 @@ function Invoke-Publish([string]$NugetApiKey, [string]$PackageTarget, [string]$S
 
     foreach ($symbolPackage in $symbolPackages) {
         Write-Host "Pushing symbol (snupkg) $symbolPackage"
-        dotnet nuget push $symbolPackage --api-key $NugetApiKey --skip-duplicate --source $SymbolTarget
+        nuget push $symbolPackage -ApiKey $NugetApiKey -SkipDuplicate -Source $PackageTarget
         Invoke-ExitCodeCheck $LastExitCode;
     }
 }
