@@ -437,7 +437,7 @@ function Invoke-Publish([string]$NugetApiKey, [string]$PackageTarget, [string]$S
 
     foreach ($symbolPackage in $symbolPackages) {
         Write-Host "Pushing symbol (snupkg) $symbolPackage"
-        nuget push $symbolPackage -ApiKey $NugetApiKey -SkipDuplicate -Source $PackageTarget
+        nuget push $symbolPackage -ApiKey $NugetApiKey -SkipDuplicate -Source $SymbolTarget
         Invoke-ExitCodeCheck $LastExitCode;
     }
 }

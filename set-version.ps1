@@ -18,7 +18,7 @@ param (
 function Read-VersionFromRef([string]$MajorMinorPatch, [string]$RefName = "", [bool]$IsTag = $False, [string]$BuildNumber = "0") {
   function preReleaseVersion ([string] $name)
   {
-      $name = $name.Replace("/","").ToLower();
+      $name = $name.Replace("/","-").ToLower();
       return "$MajorMinorPatch-$name.$BuildNumber";
   }
 

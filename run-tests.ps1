@@ -1,4 +1,6 @@
 param (
+  [Parameter()]
+  [string]$SearchFilter = "*.Tests.csproj"
 )
 
 # Load Toolkit
@@ -8,6 +10,6 @@ param (
 Invoke-Initialize;
 
 Write-Host "unit testing starts here"
-Invoke-CoverTests -SearchFilter "*.Tests.csproj" 
+Invoke-CoverTests -SearchFilter $SearchFilter 
 
 Write-Host "Success!"
