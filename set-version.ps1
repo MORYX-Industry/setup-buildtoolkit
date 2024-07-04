@@ -74,14 +74,15 @@ function Set-Version ([string]$version, [string]$GitCommitHash) {
 
   # Check if it is a pre release
   $env:MORYX_ASSEMBLY_VERSION = $majorGroup.Value + ".0.0.0" # 3.0.0.0
-  $env:MORYX_FILE_VERSION = $mmp + "." + $buildNumber; # 3.1.2.42
 
   if ($preReleaseGroup.Success) {
+      $env:MORYX_FILE_VERSION = $mmp + "." + $buildNumber; # 3.1.2.42
       $env:MORYX_INFORMATIONAL_VERSION = $mmp + "-" + $preReleaseGroup.Value + "+" + $GitCommitHash; # 3.1.2-beta.1+d95a996ed5ba14a1421dafeb844a56ab08211ead
       $env:MORYX_PACKAGE_VERSION = $mmp + "-" + $preReleaseGroup.Value;
   } else {
       $env:MORYX_INFORMATIONAL_VERSION = $mmp + "+" + $GitCommitHash; # 3.1.2+d95a996ed5ba14a1421dafeb844a56ab08211ead
       $env:MORYX_PACKAGE_VERSION = $mmp;
+      $env:MORYX_FILE_VERSION = $mmp + ".0";
   }
 }
 

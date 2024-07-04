@@ -136,7 +136,9 @@ function Invoke-Build([string]$Target = "", [string]$Source = "", [string]$Optio
     $buildArgs += "--verbosity", $env:MORYX_BUILD_VERBOSITY;
     $buildArgs += $sourceOption
     $buildArgs += "-p:$msbuildParams"
-    $buildArgs += "-p:Version=$env:MORYX_FILE_VERSION"
+	$buildArgs += "-p:Version=$env:MORYX_PACKAGE_VERSION"
+    $buildArgs += "-p:AssemblyVersion=$env:MORYX_ASSEMBLY_VERSION"
+    $buildArgs += "-p:FileVersion=$env:MORYX_FILE_VERSION"
     & dotnet build $Target @buildArgs
     Invoke-ExitCodeCheck $LastExitCode;
     Copy-Build-To-Artifacts $BuildArtifacts;
