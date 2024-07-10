@@ -50,7 +50,7 @@ function Invoke-Initialize() {
     }
 
     if (-not $env:MORYX_COMMERCIAL_BUILD) {
-        $env:MORYX_COMMERCIAL_BUILD = $False;
+        $env:MORYX_COMMERCIAL_BUILD = $True;
     }
 
     if (-not $env:MORYX_TEST_VERBOSITY) {
@@ -458,7 +458,11 @@ function ShouldCreatePackage($csprojItem){
 
 function IsLicensedProject($CsprojItem){
     $licensingConfig = [System.IO.Path]::Combine($CsprojItem.DirectoryName, "protect.WibuCpsConf");
-    return Test-Path $licensingConfig
+
+    # Fallback for MORYX 6 most configs were stored as `<project>.wbc`
+    $wbcFile = [System.IO.Path]::ChangeExtension($CsprojItem.FullName, ".wbc")
+
+    return (Test-Path $licensingConfig) -or (Test-Path $wbcFile)
 }
 
 function CreateFolderIfNotExists([string]$Folder) {
