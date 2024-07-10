@@ -239,33 +239,71 @@ function Invoke-Licensing($SearchPath = $RootPath) {
                 exit 1;
             }
             
-            # Update license config to include release date
-            Write-Host "Updating release date to $licenseCreationDate for $projectName assemblies..."
+            # .NET 8
             $licensingConfig = [System.IO.Path]::Combine($csprojItem.DirectoryName, "protect.WibuCpsConf");
-            $content = (Get-Content -Path $licensingConfig) -replace "<RELEASE_DATE>", $licenseCreationDate
-            Set-Content -Path $licensingConfig -Value $content
-
-            # Create a licensed assembly for each assembly available 
-            Write-Host "Creating licensed assembly for $projectName..."
-            ForEach($assembly in $assemlbies) {
-                
-                $assemblyTarget = GetTargetFrameworkDir $assembly
-                $licensedAssemblyPath = [System.IO.Path]::Combine($LicensingArtifacts, $projectName, "bin", $env:MORYX_BUILD_CONFIG, $assemblyTarget)
-                $licensedAssembly = [System.IO.Path]::Combine($licensedAssemblyPath, "$($projectName).dll");
-
-                & dotnet "$($axProtectorDll)" $licensingConfig $assembly $licensedAssemblyPath
-
-                if (-not (Test-Path $licensedAssembly)) {
-                    Write-Host-Error "Failed to create licensed assembly."
-                    exit 1;
-                }
-                else {
-                    Write-Host-Success "Licensed Assembly created successfully."
-                }
-            }
+            if(Test-Path $licensingConfig) {
+                Invoke-ProtectDotNet8 -csprojItem $csprojItem -licenseCreationDate $licenseCreationDate -projectName $projectName -assemlbies $assemlbies
+            } else {
+	            # Pre .NET 8 (MORYX 6)
+	            $licensingConfig = [System.IO.Path]::ChangeExtension($CsprojItem.FullName, ".wbc")
+	            if(Test-Path $licensingConfig) {
+	                Invoke-ProtectPreDotNet8 -csprojItem $csprojItem -licenseCreationDate $licenseCreationDate -projectName $projectName -assemlbies $assemlbies
+	            }     
+			}
         } else {
             Write-Host-Warning "Skipping $projectName"
         }
+    }
+}
+
+function Invoke-ProtectDotNet8($csprojItem, $licenseCreationDate, $projectName, $assemlbies){
+    # Update license config to include release date
+    Write-Host "Updating release date to $licenseCreationDate for $projectName assemblies..."
+    $licensingConfig = [System.IO.Path]::Combine($csprojItem.DirectoryName, "protect.WibuCpsConf");
+    if(Test-Path $licensingConfig) {
+        $content = (Get-Content -Path $licensingConfig) -replace "<RELEASE_DATE>", $licenseCreationDate
+        Set-Content -Path $licensingConfig -Value $content
+    }
+
+    # Create a licensed assembly for each assembly available 
+    Write-Host "Creating licensed assembly for $projectName..."
+    ForEach($assembly in $assemlbies) {
+        
+        $assemblyTarget = GetTargetFrameworkDir $assembly
+        $licensedAssemblyPath = [System.IO.Path]::Combine($LicensingArtifacts, $projectName, "bin", $env:MORYX_BUILD_CONFIG, $assemblyTarget)
+        $licensedAssembly = [System.IO.Path]::Combine($licensedAssemblyPath, "$($projectName).dll");
+
+        & dotnet "$($axProtectorDll)" $licensingConfig $assembly $licensedAssemblyPath
+
+        if (-not (Test-Path $licensedAssembly)) {
+            Write-Host-Error "Failed to create licensed assembly."
+            exit 1;
+        }
+        else {
+            Write-Host-Success "Licensed Assembly created successfully."
+        }
+    }
+}
+
+function Invoke-ProtectPreDotNet8($csprojItem, $licenseCreationDate, $projectName, $assemblies){
+    $axProtectorNetCoreCli = "$($env:AXPROTECTOR_SDK)\bin\netstandard2.0\AxProtectorNet.exe";
+
+    Write-Host "Updating release date to $licenseCreationDate for $projectName assemblies..."
+    $licensingConfig = [System.IO.Path]::Combine($csprojItem.DirectoryName, "AxProtector_$projectName.xml");
+    [xml]$licenseConfigContent = Get-Content $licensingConfig
+    $licenseConfigContent.AxProtectorNet.CommandLine.ChildNodes | 
+                            Where-Object{$_.InnerText -Match "-rd:"} | 
+                            ForEach-Object{$_.InnerText="-rd:$licenseCreationDate,00:00:00"}
+    Set-Content $licensingConfig $licenseConfigContent.OuterXml
+
+    # Create a licensed assembly for each assembly available 
+    Write-Host "Creating licensed assembly for $projectName..."
+    ForEach($assembly in $assemlbies) {
+        $assemblyTarget = GetTargetFrameworkDir $assembly
+        $licensedAssembly = [System.IO.Path]::Combine($LicensingArtifacts, $projectName, "bin", $env:MORYX_BUILD_CONFIG, $assemblyTarget, "$projectName.dll");
+        
+        Write-Host "... licensing $assembly for $assemblyTarget"
+        & $axProtectorNetCoreCli "@$licensingConfig" -o:$licensedAssembly $assembly
     }
 }
 
