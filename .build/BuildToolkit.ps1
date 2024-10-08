@@ -245,10 +245,15 @@ function Invoke-Licensing($SearchPath = $RootPath) {
                 Invoke-ProtectDotNet8 -csprojItem $csprojItem -licenseCreationDate $licenseCreationDate -projectName $projectName -assemlbies $assemlbies
             } else {
 	            # Pre .NET 8 (MORYX 6)
-	            $licensingConfig = [System.IO.Path]::ChangeExtension($CsprojItem.FullName, ".wbc")
+                $projectName = ([System.IO.Path]::GetFileNameWithoutExtension($CsprojItem.Name));
+                $licensingConfig = [System.IO.Path]::Combine($CsprojItem.DirectoryName, "AxProtector_$projectName.xml");
 	            if(Test-Path $licensingConfig) {
 	                Invoke-ProtectPreDotNet8 -csprojItem $csprojItem -licenseCreationDate $licenseCreationDate -projectName $projectName -assemlbies $assemlbies
 	            }     
+                else {
+                    Write-Host-Error "No configuration found to protect assemblies."
+                    exit 1;
+                }
 			}
         } else {
             Write-Host-Warning "Skipping $projectName"
@@ -497,10 +502,11 @@ function ShouldCreatePackage($csprojItem){
 function IsLicensedProject($CsprojItem){
     $licensingConfig = [System.IO.Path]::Combine($CsprojItem.DirectoryName, "protect.WibuCpsConf");
 
-    # Fallback for MORYX 6 most configs were stored as `<project>.wbc`
-    $wbcFile = [System.IO.Path]::ChangeExtension($CsprojItem.FullName, ".wbc")
+    # Fallback for MORYX 6 most configs were stored as `AxProtector_<project>.xml`
+    $projectName = ([System.IO.Path]::GetFileNameWithoutExtension($CsprojItem.Name));
+    $axProtectorFile = [System.IO.Path]::Combine($CsprojItem.DirectoryName, "AxProtector_$projectName.xml");
 
-    return (Test-Path $licensingConfig) -or (Test-Path $wbcFile)
+    return (Test-Path $licensingConfig) -or (Test-Path $axProtectorFile)
 }
 
 function CreateFolderIfNotExists([string]$Folder) {
