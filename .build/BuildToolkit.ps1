@@ -46,7 +46,7 @@ function Invoke-Initialize() {
     }
 
     if (-not $env:MORYX_BUILD_VERBOSITY) {
-        $env:MORYX_BUILD_VERBOSITY = "minimal"
+        $env:MORYX_BUILD_VERBOSITY = "detailed"
     }
 
     if (-not $env:MORYX_COMMERCIAL_BUILD) {
@@ -58,7 +58,7 @@ function Invoke-Initialize() {
     }
 
     if (-not $env:MORYX_NUGET_VERBOSITY) {
-        $env:MORYX_NUGET_VERBOSITY = "normal"
+        $env:MORYX_NUGET_VERBOSITY = "detailed"
     }
 
     if (-not $env:MORYX_OPTIMIZE_CODE) {
