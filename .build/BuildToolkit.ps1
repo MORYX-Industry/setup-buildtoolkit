@@ -337,6 +337,11 @@ function Invoke-PackSdkProject($CsprojItem, [bool]$IncludeSymbols = $False) {
     $objPath = [System.IO.Path]::Combine($CsprojItem.DirectoryName, "obj");
     $projectObjArtifacts = [System.IO.Path]::Combine($artifacts, $projectName, "obj");
     CopyAndReplaceFolder $projectObjArtifacts $objPath;   
+    $wwwrootPath = [System.IO.Path]::Combine($CsprojItem.DirectoryName, "wwwroot");
+    $projectWwwrootArtifacts = [System.IO.Path]::Combine($artifacts, $projectName, "wwwroot");
+    if(Test-Path $projectWwwrootArtifacts) {
+        CopyAndReplaceFolder $projectWwwrootArtifacts $wwwrootPath;
+    }
 
 
     if (IsLicensedProject $CsprojItem) {
@@ -366,6 +371,7 @@ function Invoke-PackSdkProject($CsprojItem, [bool]$IncludeSymbols = $False) {
     $packargs += "-p:PackageVersion=$env:MORYX_PACKAGE_VERSION";
     $packargs += "--verbosity", "$env:MORYX_NUGET_VERBOSITY";
     $packargs += "--no-build";
+    $packargs += "--no-restore";
 
     if ($IncludeSymbols) {
         $packargs += "--include-symbols";
