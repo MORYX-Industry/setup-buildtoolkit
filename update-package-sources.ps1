@@ -13,6 +13,9 @@ $internalMoryxNpmSource = 'http://dockerregistry.europe.phoenixcontact.com/repos
 $internalNpmSource = 'http://dockerregistry.europe.phoenixcontact.com/repository/pxc-npm-proxy'
 $npmSource = 'https://registry.npmjs.org'
 
+$internalMoryxNpmPackagePath = '@moryx/ngx-web-framework/-/ngx-web-framework'
+$moryxNpmPackagePath = '@moryx/ngx-web-framework/-/@moryx/ngx-web-framework'
+
 function Update-Nuget-Sources {
     if (Test-Path -Path $GithubNugetConfig) {
         Copy-Item -Path $GithubNugetConfig -Destination $NugetConfig -Force
@@ -30,6 +33,7 @@ function Update-Npm-Sources {
         $content = Get-Content -Path $file -Raw
 
         # Replace the old strings with the new strings
+        $content = $content -replace [regex]::Escape($internalMoryxNpmPackagePath), $moryxNpmPackagePath
         $content = $content -replace [regex]::Escape($internalMoryxNpmSource), $MoryxNpmSource
         $content = $content -replace [regex]::Escape($internalNpmSource), $npmSource
 
